@@ -1,0 +1,140 @@
+{
+    "log": {
+        "level": "error",
+        "timestamp": true
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "dns_proxy",
+                "address": "https://1.1.1.1/dns-query",
+                "address_resolver": "dns_resolver",
+                "address_strategy": "ipv4_only",
+                "strategy": "ipv4_only",
+                "detour": "vless-out",
+                "client_subnet": "59.70.60.20"
+            },
+            {
+                "tag": "dns_resolver",
+                "address": "local",
+                "detour": "direct",
+                "strategy": "ipv4_only"
+            }
+        ],
+        "rules": [
+            {
+                "outbound": "any",
+                "server": "dns_resolver"
+            },
+            {
+                "rule_set": "geosite-cn",
+                "server": "dns_resolver"
+            }
+        ],
+        "final": "dns_proxy",
+        "strategy": "ipv4_only"
+    },
+    "inbounds": [
+        {
+            "type": "tun",
+            "tag": "tun-in",
+            "mtu": 1400,
+            "auto_route": true,
+            "strict_route": true,
+            "stack": "gvisor",
+            "sniff": true,
+            "inet4_address": "172.16.0.1/30",
+            "inet6_address": "fd00::1/126"
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        },
+        {
+            "type": "dns",
+            "tag": "dns-out"
+        },
+        {
+            "type": "vless",
+            "tag": "vless-out",
+            "routing_mark": 100,
+            "server": "156.26.11.82",
+            "server_port": 233,
+            "uuid": "5eb545d7-c25b-4e2c-b48a-66ef0c64ed07",
+            "flow": "xtls-rprx-vision",
+            "packet_encoding": "xudp",
+            "tls": {
+                "enabled": true,
+                "server_name": "www.henau.edu.cn",
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "sqNkNGBhIBploUcf9-aCzh51ETaKrYOS6b0Wz0gQE",
+                    "short_id": "4cae74ba0ee703cc"
+                }
+            },
+            "tcp_fast_open": true,
+            "tcp_multi_path": true
+        }
+    ],
+    "route": {
+        "rules": [
+            {
+                "protocol": "dns",
+                "outbound": "dns-out"
+            },
+            {
+                "protocol": [
+                    "bittorrent",
+                    "quic"
+                ],
+                "outbound": "block"
+            },
+            {
+                "rule_set": [
+                    "geoip-cn",
+                    "geosite-cn"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "vless-out"
+            }
+        ],
+        "rule_set": [
+            {
+                "type": "remote",
+                "tag": "geoip-cn",
+                "format": "binary",
+                "url": "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo-lite/geoip/cn.srs",
+                "download_detour": "vless-out"
+            },
+            {
+                "type": "remote",
+                "tag": "geosite-cn",
+                "format": "binary",
+                "url": "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/sing/geo-lite/geosite/cn.srs",
+                "download_detour": "vless-out"
+            }
+        ],
+        "final": "vless-out",
+        "auto_detect_interface": true
+    },
+    "experimental": {
+        "cache_file": {
+            "enabled": true,
+            "path": "cache.db"
+        }
+    }
+}

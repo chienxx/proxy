@@ -1,0 +1,30 @@
+services:
+  3xui:
+    container_name: 3xui
+    volumes:
+      - ./data/3xui/db/:/etc/x-ui/
+      - ./data/3xui/cert/:/root/cert
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+      X_UI_ENABLE_FAIL2BAN: "true"
+    tty: true
+    restart: unless-stopped
+    ports:
+      - 11232:11232 //对应入站端口
+    networks:
+      - vpn
+    image: ghcr.io/mhsanaei/3x-ui:latest
+  caddy:
+    container_name: caddy
+    restart: unless-stopped
+    networks:
+      - vpn
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./data/caddy/Caddyfile:/etc/caddy/Caddyfile
+    image: caddy:latest
+
+networks:
+  vpn:

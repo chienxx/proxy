@@ -1,0 +1,123 @@
+{
+    "log": {
+      "level": "info"
+    },
+    "dns": {
+      "servers": [
+        {
+          "type": "local",
+          "tag": "1"
+        }
+      ],
+      "final": "1",
+      "strategy": "ipv4_only"
+    },
+    "inbounds": [
+      {
+        "type": "vless",
+        "tag": "vless-in",
+        "listen": "::",
+        "listen_port": 33333,
+        "tcp_fast_open": true,
+        "tcp_multi_path": true,
+        "users": [
+          {
+            "name": "",
+            "uuid": "5eb545d7-c25b-4e2c-b48a-66ef0c64ed07",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "tls": {
+          "enabled": true,
+          "server_name": "www.henau.edu.cn",
+          "reality": {
+            "enabled": true,
+            "handshake": {
+              "server": "www.henau.edu.cn",
+              "server_port": 443
+            },
+            "private_key": "eCbxF3OaM0PswAKXPHmkg9SnE904UYJco4INaCMTyUo",
+            "short_id": "4cae74ba0ee703cc"
+          }
+        },
+        "multiplex": {
+          "enabled": true,
+          "brutal": {
+            "up_mbps": 100,
+            "down_mbps": 100
+          }
+        }
+      }
+    ],
+    "outbounds": [
+      {
+        "type": "direct",
+        "tag": "direct",
+        "tcp_fast_open": true,
+        "tcp_multi_path": true
+      },
+      {
+        "type": "socks",
+        "tag": "us",
+        "server": "48.28.36.57",
+        "server_port": 2222,
+        "version": "5",
+        "username": "remyy",
+        "password": "521314"
+      }
+    ],
+    "route": {
+      "rules": [
+        {
+          "action": "sniff"
+        },
+        {
+          "protocol": [
+            "bittorrent",
+            "quic"
+          ],
+          "action": "reject",
+          "method": "default"
+        },
+        {
+          "protocol": "dns",
+          "action": "hijack-dns"
+        },
+        {
+          "rule_set": [
+            "geosite-claude",
+            "geosite-openai"
+          ],
+          "outbound": "us"
+        },
+        {
+          "inbound": [
+            "vless-in",
+            "ss-in"
+          ],
+          "outbound": "direct"
+        }
+      ],
+      "rule_set": [
+        {
+          "type": "remote",
+          "tag": "geosite-openai",
+          "format": "binary",
+          "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-openai.srs",
+          "download_detour": "direct"
+        },
+        {
+          "type": "remote",
+          "tag": "geosite-claude",
+          "format": "binary",
+          "url": "https://github.com/SagerNet/sing-geosite/raw/refs/heads/rule-set/geosite-anthropic.srs",
+          "download_detour": "direct"
+        }
+      ],
+      "default_domain_resolver": {
+        "server": "1",
+        "client_subnet": "1.1.1.1"
+      }
+    }
+  }
+  
